@@ -66,6 +66,7 @@ const Home = () => {
   const [showModal, setShowModal] = React.useState(false);
   const [shotToEdit, setShotToEdit] = React.useState(null);
   const [medicViewMode, setMedicViewMode] = useMedicViewMode('list');
+  const [formValues, setFormValues] = React.useState();
 
   const { open: openUpload, isDragAccept, getRootProps, getInputProps } = useDropzone({
     noClick: true,
@@ -88,7 +89,6 @@ const Home = () => {
     },
   });
 
-  const formRef = React.useRef();
   const timeRef = React.useRef();
 
   const deleteMedication = React.useCallback(
@@ -128,45 +128,22 @@ const Home = () => {
     [setMedications],
   );
 
-  const handleFormSubmit = event => {
-    event.preventDefault();
-    const data = new FormData(event.target);
-    const formEntries = Object.fromEntries(
-      Array.from(data.entries()).filter(({ 1: value }) => value),
-    );
+  const handleFormSubmit = formEntries => {
     if (!formEntries.uuid) {
       formEntries.uuid = uuidv4();
     }
-    const isValid = event.target.reportValidity();
-
-    if (!isValid) {
-      return;
-    }
 
     addMedication(formEntries);
-    event.target.reset();
+    setFormValues({});
     setEditMode(false);
     setShowModal(false);
   };
 
   const editMedication = editUuid => {
+    const medication = medications.find(({ uuid }) => editUuid === uuid);
+    setFormValues(medication);
     setEditMode(true);
     setShowModal(true);
-    const medication = medications.find(({ uuid }) => editUuid === uuid);
-    Object.entries(medication).forEach(([field, value]) => {
-      formRef.current.elements[field].value = value;
-    });
-  };
-
-  const handleCancel = () => {
-    setShowModal(false);
-    setTimeout(
-      () => {
-        setEditMode(false);
-        formRef.current.reset();
-      },
-      200,
-    );
   };
 
   const take = medication => {
@@ -234,19 +211,22 @@ const Home = () => {
 
       <MedicModal
         open={showModal}
-        onClose={() => setShowModal(false)}
-        onCancel={handleCancel}
+        initialValues={formValues}
+        onClose={() => {
+          setFormValues({});
+          setEditMode(false);
+          setShowModal(false);
+        }}
         onSubmit={handleFormSubmit}
         alt={editMode}
       />
 
       <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
-
         <ToggleButtonGroup size="small">
           <ToggleButton
             value
             onClick={() => {
-              formRef.current.reset();
+              setFormValues({});
               setShowModal(true);
             }}
           >
