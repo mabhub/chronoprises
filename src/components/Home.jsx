@@ -32,6 +32,8 @@ import {
   MoreHoriz,
 } from '@mui/icons-material';
 
+import { useDropzone } from 'react-dropzone';
+
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import updateLocale from 'dayjs/plugin/updateLocale';
@@ -46,7 +48,7 @@ import CustomTextField from './CustomTextField';
 import MedicModal from './MedicModal';
 import ColorButton from './ColorButton';
 
-import { downloadJSON } from '../lib';
+import { downloadJSON, readFiles } from '../lib';
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
@@ -64,6 +66,27 @@ const Home = () => {
   const [showModal, setShowModal] = React.useState(false);
   const [shotToEdit, setShotToEdit] = React.useState(null);
   const [medicViewMode, setMedicViewMode] = useMedicViewMode('list');
+
+  const { open: openUpload, isDragAccept, getRootProps, getInputProps } = useDropzone({
+    noClick: true,
+    accept: {
+      'application/json': ['.json'],
+    },
+    onDrop: async (acceptedFiles = []) => {
+      const files = await readFiles(acceptedFiles);
+      const decoder = new TextDecoder('utf-8');
+      const contents = files.map(({ content }) => JSON.parse(decoder.decode(content)));
+
+      contents.forEach(data => {
+        if (data.shots) {
+          setShots(data.shots);
+        }
+        if (data.medications) {
+          setMedications(data.medications);
+        }
+      });
+    },
+  });
 
   const formRef = React.useRef();
   const timeRef = React.useRef();
@@ -177,7 +200,38 @@ const Home = () => {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container
+      maxWidth="sm"
+      {...getRootProps()}
+      sx={{
+        position: 'relative',
+        zIndex: 1,
+      }}
+    >
+      {/* Upload field */}
+      <input {...getInputProps()} />
+
+      {/* Upload drop zone */}
+      {isDragAccept && (
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            bgcolor: 'rgba(255 255 255 / 0.8)',
+            border: '4px dashed silver',
+            borderRadius: 5,
+            zIndex: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Box>
+            Déposez votre fichier de configuration
+          </Box>
+        </Box>
+      )}
+
       <MedicModal
         open={showModal}
         onClose={() => setShowModal(false)}
@@ -201,25 +255,17 @@ const Home = () => {
         </ToggleButtonGroup>
 
         <ToggleButtonGroup size="small">
-          <ToggleButton
-            value
-            onClick={clearMedication}
-          >
+          <ToggleButton value onClick={clearMedication}>
             <DeleteForever color="error" />
           </ToggleButton>
         </ToggleButtonGroup>
 
         <ToggleButtonGroup size="small">
-          <ToggleButton
-            value
-            onClick={exportAll}
-          >
+          <ToggleButton value onClick={exportAll}>
             <GetApp />
           </ToggleButton>
-          <ToggleButton
-            value
-            onClick={() => {}}
-          >
+
+          <ToggleButton value onClick={openUpload}>
             <FileUpload />
           </ToggleButton>
         </ToggleButtonGroup>

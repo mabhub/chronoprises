@@ -16,4 +16,33 @@ export const downloadJSON = (object, filename = 'data') => {
   URL.revokeObjectURL(href);
 };
 
+/**
+ * @param {Object} file Resource from an file input field
+ * @return {Object} Object with name and content as ArrayBuffer
+ */
+export const readFile = (file, readerMethod = 'readAsArrayBuffer') => (
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onabort = () => reject(new Error('file reading was aborted'));
+    reader.onerror = () => reject(new Error('file reading has failed'));
+    reader.onload = () => resolve({
+      filename: file.name,
+      content: reader.result,
+    });
+    reader[readerMethod](file);
+  })
+);
+
+/**
+ * Get buffer content from an array of file resources
+ *
+ * @param {Object[]} fileResources Array of file resources (from file input field)
+ * @returns {Object[]} An array of file with name, and content as ArrayBuffer
+ */
+export const readFiles = async (fileResources, readerMethod) => {
+  const promises = fileResources.map(fileResource => readFile(fileResource, readerMethod));
+  const files = await Promise.all(promises);
+  return files;
+};
+
 export default {};
