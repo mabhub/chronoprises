@@ -173,7 +173,7 @@ const Home = () => {
     downloadJSON({
       medications,
       shots,
-    }, 'chronoprises.json');
+    }, `${dayjs().format('YYYYMMDD-HHmm')}-chronoprises.json`);
   };
 
   return (
