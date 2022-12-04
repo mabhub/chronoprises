@@ -388,7 +388,7 @@ const Home = () => {
           </ListItem>
         )}
 
-        {shots.sort(({ ts: a }, { ts: b }) => (a - b)).map(shot => {
+        {shots.sort(({ ts: a }, { ts: b }) => (b - a)).map(shot => {
           const { uuid, ts, primary, color, secondary } = shot;
 
           return (
