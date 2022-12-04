@@ -36,6 +36,8 @@ import {
   DeleteForever,
   Done,
   Edit,
+  FileUpload,
+  GetApp,
   List as ListIcon,
   MoreHoriz,
 } from '@mui/icons-material';
@@ -205,6 +207,13 @@ const Home = () => {
 
   const handleMedicViewModeChange = (event, value) => setMedicViewMode(value);
 
+  const exportAll = () => {
+    console.log({
+      medications,
+      shots,
+    });
+  };
+
   return (
     <Container maxWidth="sm">
       <Dialog open={showModal} onClose={() => setShowModal(false)} keepMounted>
@@ -323,9 +332,24 @@ const Home = () => {
         <ToggleButtonGroup size="small">
           <ToggleButton
             value
-            onClick={() => clearMedication()}
+            onClick={clearMedication}
           >
             <DeleteForever color="error" />
+          </ToggleButton>
+        </ToggleButtonGroup>
+
+        <ToggleButtonGroup size="small">
+          <ToggleButton
+            value
+            onClick={exportAll}
+          >
+            <GetApp />
+          </ToggleButton>
+          <ToggleButton
+            value
+            onClick={() => {}}
+          >
+            <FileUpload />
           </ToggleButton>
         </ToggleButtonGroup>
 
