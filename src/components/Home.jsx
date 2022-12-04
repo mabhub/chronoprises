@@ -235,7 +235,7 @@ const Home = () => {
         </ToggleButtonGroup>
 
         <ToggleButtonGroup size="small">
-          <ToggleButton value onClick={clearMedication}>
+          <ToggleButton value onClick={clearMedication} disabled sx={{ opacity: 0.2 }}>
             <DeleteForever color="error" />
           </ToggleButton>
         </ToggleButtonGroup>
