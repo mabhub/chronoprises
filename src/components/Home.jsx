@@ -22,8 +22,21 @@ import {
   colors,
   ListItemSecondaryAction,
   ListSubheader,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
-import { Add, AvTimer, Clear, Delete, DeleteForever, Done, Edit } from '@mui/icons-material';
+
+import {
+  Add,
+  AvTimer,
+  Clear,
+  Delete,
+  DeleteForever,
+  Done,
+  Edit,
+  List as ListIcon,
+  MoreHoriz,
+} from '@mui/icons-material';
 
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -43,6 +56,7 @@ dayjs.locale('fr');
 
 const useMedicationState = createPersistedState('medications');
 const useShots = createPersistedState('shots');
+const useMedicViewMode = createPersistedState('medicViewMode');
 
 const CustomTextField = React.forwardRef(({ InputLabelProps = {}, ...props }, ref) => (
   <TextField
@@ -62,6 +76,7 @@ const Home = () => {
   const [editMode, setEditMode] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [shotToEdit, setShotToEdit] = React.useState(null);
+  const [medicViewMode, setMedicViewMode] = useMedicViewMode('list');
 
   const formRef = React.useRef();
   const timeRef = React.useRef();
@@ -165,6 +180,8 @@ const Home = () => {
     ]);
   };
 
+  const handleMedicViewModeChange = (event, value) => setMedicViewMode(value);
+
   return (
     <Container maxWidth="sm">
       <Dialog open={showModal} onClose={() => setShowModal(false)} keepMounted>
@@ -266,33 +283,47 @@ const Home = () => {
         </DialogContent>
       </Dialog>
 
-      <List>
-        <ListItem
-          disablePadding
-          sx={{ bgcolor: '#f0f0f0' }}
-        >
-          <ListItemButton
+      <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
+
+        <ToggleButtonGroup size="small">
+          <ToggleButton
+            value
             onClick={() => {
               formRef.current.reset();
               setShowModal(true);
             }}
           >
-            <ListItemAvatar />
-            <ListItemText><Add sx={{ verticalAlign: 'middle' }} /> Ajouter…</ListItemText>
+            <Add color="success" />
+          </ToggleButton>
+        </ToggleButtonGroup>
 
-            <ListItemSecondaryAction>
-              <Tooltip title="Supprimer tous les traitements">
-                <IconButton
-                  edge="end"
-                  onClick={() => clearMedication()}
-                >
-                  <DeleteForever />
-                </IconButton>
-              </Tooltip>
-            </ListItemSecondaryAction>
-          </ListItemButton>
-        </ListItem>
+        <ToggleButtonGroup size="small">
+          <ToggleButton
+            value
+            onClick={() => clearMedication()}
+          >
+            <DeleteForever color="error" />
+          </ToggleButton>
+        </ToggleButtonGroup>
 
+        <ToggleButtonGroup
+          color="primary"
+          size="small"
+          onChange={handleMedicViewModeChange}
+          value={medicViewMode}
+          exclusive
+        >
+          <ToggleButton value="list">
+            <ListIcon />
+          </ToggleButton>
+
+          <ToggleButton value="line">
+            <MoreHoriz />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
+
+      <List>
         {medications
           .sort(({ primary: a }, { primary: b }) => a.localeCompare(b))
           .map(medication => {
