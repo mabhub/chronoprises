@@ -68,7 +68,7 @@ const MedicModal = React.forwardRef(({
             <CustomTextField
               label="Nom du médicament"
               name="primary"
-              placeholder="Doliprane 1000mg"
+              placeholder="Doliprane"
               required
               sx={{ flex: 1 }}
             />
@@ -95,10 +95,9 @@ const MedicModal = React.forwardRef(({
           </Stack>
 
           <CustomTextField
-            label="Info supplémentaire"
+            label="Dosage / info supplémentaire"
             name="secondary"
-            placeholder="Maximum 4 par 24h"
-            multiline
+            placeholder="200 mg"
             fullWidth
           />
 
