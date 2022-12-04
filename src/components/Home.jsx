@@ -46,6 +46,8 @@ import CustomTextField from './CustomTextField';
 import MedicModal from './MedicModal';
 import ColorButton from './ColorButton';
 
+import { downloadJSON } from '../lib';
+
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
 dayjs.extend(updateLocale);
@@ -168,10 +170,10 @@ const Home = () => {
   const handleMedicViewModeChange = (event, value) => (value && setMedicViewMode(value));
 
   const exportAll = () => {
-    console.log({
+    downloadJSON({
       medications,
       shots,
-    });
+    }, 'chronoprises.json');
   };
 
   return (
