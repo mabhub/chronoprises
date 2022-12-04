@@ -2,30 +2,20 @@ import React from 'react';
 import {
   Avatar,
   Box,
-  Button,
   Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Divider,
   IconButton,
-  InputAdornment,
   List,
   ListItem,
   ListItemAvatar,
   ListItemButton,
   ListItemText,
   Stack,
-  TextField,
   Tooltip,
-  colors,
   ListItemSecondaryAction,
   ListSubheader,
   ToggleButtonGroup,
   ToggleButton,
-  ThemeProvider,
-  createTheme,
 } from '@mui/material';
 
 import {
@@ -52,6 +42,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 // eslint-disable-next-line import/no-unresolved
 import createPersistedState from 'use-persisted-state';
+import CustomTextField from './CustomTextField';
+import MedicModal from './MedicModal';
+import ColorButton from './ColorButton';
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
@@ -61,39 +54,6 @@ dayjs.locale('fr');
 const useMedicationState = createPersistedState('medications');
 const useShots = createPersistedState('shots');
 const useMedicViewMode = createPersistedState('medicViewMode');
-
-const CustomTextField = React.forwardRef(({ InputLabelProps = {}, ...props }, ref) => (
-  <TextField
-    ref={ref}
-    size="small"
-    InputLabelProps={{
-      shrink: true,
-      ...InputLabelProps,
-    }}
-    {...props}
-  />
-));
-
-const ColorButton = React.forwardRef(({
-  color,
-  sx = {},
-  ...props
-}, ref) => {
-  const localTheme = createTheme({ palette: { primary: { main: color } } });
-
-  return (
-    <ThemeProvider theme={localTheme}>
-      <Button
-        ref={ref}
-        sx={{
-          textTransform: 'none',
-          ...sx,
-        }}
-        {...props}
-      />
-    </ThemeProvider>
-  );
-});
 
 const Home = () => {
   const [medications, setMedications] = useMedicationState([]);
@@ -205,7 +165,7 @@ const Home = () => {
     ]);
   };
 
-  const handleMedicViewModeChange = (event, value) => setMedicViewMode(value);
+  const handleMedicViewModeChange = (event, value) => (value && setMedicViewMode(value));
 
   const exportAll = () => {
     console.log({
@@ -216,104 +176,13 @@ const Home = () => {
 
   return (
     <Container maxWidth="sm">
-      <Dialog open={showModal} onClose={() => setShowModal(false)} keepMounted>
-        <DialogTitle>
-          {editMode ? 'Modifier' : 'Ajouter'} un médicament
-        </DialogTitle>
-        <DialogContent>
-          <Stack
-            component="form"
-            noValidate
-            autoComplete="off"
-            sx={{ mt: 2 }}
-            spacing={2}
-            onSubmit={handleFormSubmit}
-            ref={formRef}
-          >
-            <Stack direction="row" spacing={1}>
-              <CustomTextField
-                label="Nom du médicament"
-                name="primary"
-                placeholder="Doliprane 1000mg"
-                required
-                sx={{ flex: 1 }}
-              />
-
-              <CustomTextField
-                helperText="entre chaque prise"
-                name="delay"
-                placeholder="6"
-                sx={{
-                  width: '14ch',
-                }}
-                inputProps={{
-                  inputMode: 'numeric',
-                  pattern: '[0-9]*',
-                  sx: { textAlign: 'center' },
-                }}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">heures</InputAdornment>,
-                }}
-                FormHelperTextProps={{
-                  sx: { textAlign: 'right', mt: 0, mr: 0 },
-                }}
-              />
-            </Stack>
-
-            <CustomTextField
-              label="Info supplémentaire"
-              name="secondary"
-              placeholder="Maximum 4 par 24h"
-              multiline
-              fullWidth
-            />
-
-            <CustomTextField
-              label="Couleur"
-              name="color"
-              placeholder="#abcedf"
-            />
-
-            <Box>
-              {[200, 500, 900].map(colorIndex => (
-                <Box key={colorIndex} sx={{ lineHeight: 1, textAlign: 'center' }}>
-                  {Object.entries(colors).slice(-15).map(([name, values]) => (
-                    <Box
-                      key={name}
-                      sx={{
-                        display: 'inline-block',
-                        verticalAlign: 'middle',
-                        width: 'calc(100% / 15)',
-                        height: 20,
-                        bgcolor: values[colorIndex],
-                        cursor: 'pointer',
-                        borderRadius: 0.5,
-                        border: '2px solid transparent',
-                        '&:hover': {
-                          borderColor: values[(colorIndex + 300) % 900],
-                        },
-                      }}
-                      // eslint-disable-next-line prefer-destructuring
-                      onClick={() => { formRef.current.elements.color.value = values[colorIndex]; }}
-                    />
-                  ))}
-                </Box>
-              ))}
-            </Box>
-
-            <input name="uuid" type="text" />
-
-            <DialogActions>
-              <Button variant="outlined" type="submit">
-                {editMode ? 'Modifier' : 'Ajouter'}
-              </Button>
-              <Button variant="outlined" color="warning" onClick={handleCancel}>
-                Annuler
-              </Button>
-            </DialogActions>
-          </Stack>
-        </DialogContent>
-      </Dialog>
+      <MedicModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onCancel={handleCancel}
+        onSubmit={handleFormSubmit}
+        alt={editMode}
+      />
 
       <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
 
@@ -364,7 +233,7 @@ const Home = () => {
             <ListIcon />
           </ToggleButton>
 
-          <ToggleButton value="line">
+          <ToggleButton value="button">
             <MoreHoriz />
           </ToggleButton>
         </ToggleButtonGroup>
@@ -440,7 +309,7 @@ const Home = () => {
         </List>
       )}
 
-      {medicViewMode === 'line' && (
+      {medicViewMode === 'button' && (
         <Stack direction="row" gap={0.5} flexWrap="wrap" sx={{ mt: 1 }}>
           {medications.map(medication => {
             const { uuid, primary, color, secondary } = medication;
