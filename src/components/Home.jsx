@@ -24,6 +24,8 @@ import {
   ListSubheader,
   ToggleButtonGroup,
   ToggleButton,
+  ThemeProvider,
+  createTheme,
 } from '@mui/material';
 
 import {
@@ -69,6 +71,27 @@ const CustomTextField = React.forwardRef(({ InputLabelProps = {}, ...props }, re
     {...props}
   />
 ));
+
+const ColorButton = React.forwardRef(({
+  color,
+  sx = {},
+  ...props
+}, ref) => {
+  const localTheme = createTheme({ palette: { primary: { main: color } } });
+
+  return (
+    <ThemeProvider theme={localTheme}>
+      <Button
+        ref={ref}
+        sx={{
+          textTransform: 'none',
+          ...sx,
+        }}
+        {...props}
+      />
+    </ThemeProvider>
+  );
+});
 
 const Home = () => {
   const [medications, setMedications] = useMedicationState([]);
@@ -323,73 +346,112 @@ const Home = () => {
         </ToggleButtonGroup>
       </Stack>
 
-      <List>
-        {medications
-          .sort(({ primary: a }, { primary: b }) => a.localeCompare(b))
-          .map(medication => {
-            const { primary, secondary, uuid, color, delay } = medication;
+      {medicViewMode === 'list' && (
+        <List>
+          {medications
+            .sort(({ primary: a }, { primary: b }) => a.localeCompare(b))
+            .map(medication => {
+              const { primary, secondary, uuid, color, delay } = medication;
+
+              return (
+                <React.Fragment key={uuid}>
+                  <Divider />
+
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => take(medication)}>
+                      <ListItemAvatar>
+                        <Avatar
+                          sx={{
+                            bgcolor: color,
+                            width: 30,
+                            height: 30,
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          {primary.substr(0, 3)}
+                        </Avatar>
+                      </ListItemAvatar>
+
+                      <ListItemText primary={primary} secondary={secondary} />
+
+                      <ListItemSecondaryAction>
+                        {delay && (
+                          <Tooltip
+                            arrow
+                            title={(
+                              <Box sx={{ textAlign: 'center' }}>
+                                <strong>{delay} heure{delay > 1 ? 's' : ''}</strong> au moins<br />
+                                entre chaque prise
+                              </Box>
+                            )}
+                          >
+                            <Box component="span">
+                              <IconButton disabled>
+                                <AvTimer />
+                              </IconButton>
+                            </Box>
+                          </Tooltip>
+                        )}
+
+                        <IconButton
+                          onClick={event => { event.stopPropagation(); editMedication(uuid); }}
+                          color="info"
+                        >
+                          <Edit />
+                        </IconButton>
+
+                        <IconButton
+                          edge="end"
+                          onClick={event => { event.stopPropagation(); deleteMedication(uuid); }}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItemButton>
+
+                  </ListItem>
+                </React.Fragment>
+              );
+            })}
+        </List>
+      )}
+
+      {medicViewMode === 'line' && (
+        <Stack direction="row" gap={0.5} flexWrap="wrap" sx={{ mt: 1 }}>
+          {medications.map(medication => {
+            const { uuid, primary, color, secondary } = medication;
 
             return (
-              <React.Fragment key={uuid}>
-                <Divider />
+              <ColorButton
+                key={uuid}
+                color={color}
+                variant="contained"
+                onClick={() => take(medication)}
+              >
+                <Stack
+                  sx={{ lineHeight: 1.2, minHeight: '2em' }}
+                  justifyContent="center"
+                >
+                  {primary}
 
-                <ListItem disablePadding>
-                  <ListItemButton onClick={() => take(medication)}>
-                    <ListItemAvatar>
-                      <Avatar
-                        sx={{
-                          bgcolor: color,
-                          width: 30,
-                          height: 30,
-                          fontSize: '0.85rem',
-                        }}
-                      >
-                        {primary.substr(0, 3)}
-                      </Avatar>
-                    </ListItemAvatar>
-
-                    <ListItemText primary={primary} secondary={secondary} />
-
-                    <ListItemSecondaryAction>
-                      {delay && (
-                        <Tooltip
-                          arrow
-                          title={(
-                            <Box sx={{ textAlign: 'center' }}>
-                              <strong>{delay} heure{delay > 1 ? 's' : ''}</strong> au moins<br />
-                              entre chaque prise
-                            </Box>
-                          )}
-                        >
-                          <Box component="span">
-                            <IconButton disabled>
-                              <AvTimer />
-                            </IconButton>
-                          </Box>
-                        </Tooltip>
-                      )}
-
-                      <IconButton
-                        onClick={event => { event.stopPropagation(); editMedication(uuid); }}
-                        color="info"
-                      >
-                        <Edit />
-                      </IconButton>
-
-                      <IconButton
-                        edge="end"
-                        onClick={event => { event.stopPropagation(); deleteMedication(uuid); }}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItemButton>
-
-                </ListItem>
-              </React.Fragment>
+                  {secondary && (
+                    <Box
+                      sx={{
+                        fontSize: '0.8em',
+                        opacity: 0.75,
+                        whiteSpace: 'nowrap',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {secondary}
+                    </Box>
+                  )}
+                </Stack>
+              </ColorButton>
             );
           })}
-      </List>
+        </Stack>
+      )}
 
       <List>
         <ListSubheader>
@@ -406,7 +468,7 @@ const Home = () => {
         )}
 
         {shots.sort(({ ts: a }, { ts: b }) => (a - b)).map(shot => {
-          const { uuid, ts, primary, color } = shot;
+          const { uuid, ts, primary, color, secondary } = shot;
 
           return (
             <ListItem key={uuid}>
@@ -465,7 +527,7 @@ const Home = () => {
                     )}
                   </>
                 )}
-                secondary=""
+                secondary={secondary}
               />
 
               <ListItemSecondaryAction sx={{ cursor: 'default' }}>
