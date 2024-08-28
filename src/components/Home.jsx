@@ -12,7 +12,6 @@ import {
   ListItemText,
   Stack,
   Tooltip,
-  ListItemSecondaryAction,
   ListSubheader,
   ToggleButtonGroup,
   ToggleButton,
@@ -285,24 +284,10 @@ const Home = () => {
                 <React.Fragment key={uuid}>
                   <Divider />
 
-                  <ListItem disablePadding>
-                    <ListItemButton onClick={() => take(medication)}>
-                      <ListItemAvatar>
-                        <Avatar
-                          sx={{
-                            bgcolor: color,
-                            width: 30,
-                            height: 30,
-                            fontSize: '0.85rem',
-                          }}
-                        >
-                          {primary.substr(0, 3)}
-                        </Avatar>
-                      </ListItemAvatar>
-
-                      <ListItemText primary={primary} secondary={secondary} />
-
-                      <ListItemSecondaryAction>
+                  <ListItem
+                    disablePadding
+                    secondaryAction={(
+                      <>
                         {delay && (
                           <Tooltip
                             arrow
@@ -334,7 +319,24 @@ const Home = () => {
                         >
                           <Delete />
                         </IconButton>
-                      </ListItemSecondaryAction>
+                      </>
+                    )}
+                  >
+                    <ListItemButton onClick={() => take(medication)}>
+                      <ListItemAvatar>
+                        <Avatar
+                          sx={{
+                            bgcolor: color,
+                            width: 30,
+                            height: 30,
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          {primary.substr(0, 3)}
+                        </Avatar>
+                      </ListItemAvatar>
+
+                      <ListItemText primary={primary} secondary={secondary} />
                     </ListItemButton>
 
                   </ListItem>
@@ -399,7 +401,19 @@ const Home = () => {
           const { uuid, ts, primary, color, secondary } = shot;
 
           return (
-            <ListItem key={uuid}>
+            <ListItem
+              key={uuid}
+              secondaryAction={(
+                <>
+                  <IconButton onClick={() => setShotToEdit(uuid)}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton edge="end" onClick={() => deleteShot(uuid)}>
+                    <Delete />
+                  </IconButton>
+                </>
+              )}
+            >
               <ListItemAvatar color="secondary">
                 <Avatar sx={{ bgcolor: color, width: 30, height: 30, fontSize: '0.85rem' }}>
                   {primary.substr(0, 3)}
@@ -456,15 +470,6 @@ const Home = () => {
                 )}
                 secondary={secondary}
               />
-
-              <ListItemSecondaryAction sx={{ cursor: 'default' }}>
-                <IconButton onClick={() => setShotToEdit(uuid)}>
-                  <Edit />
-                </IconButton>
-                <IconButton edge="end" onClick={() => deleteShot(uuid)}>
-                  <Delete />
-                </IconButton>
-              </ListItemSecondaryAction>
             </ListItem>
           );
         })}

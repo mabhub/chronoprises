@@ -1,14 +1,13 @@
 import React from 'react';
 import { TextField } from '@mui/material';
 
-const CustomTextField = React.forwardRef(({ InputLabelProps = {}, ...props }, ref) => (
+export const defaultSlotProps = { inputLabel: { shrink: true } };
+
+const CustomTextField = React.forwardRef((props, ref) => (
   <TextField
     ref={ref}
     size="small"
-    InputLabelProps={{
-      shrink: true,
-      ...InputLabelProps,
-    }}
+    slotProps={defaultSlotProps}
     {...props}
   />
 ));
