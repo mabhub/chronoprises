@@ -80,10 +80,18 @@ const Home = () => {
 
       contents.forEach(data => {
         if (data.shots) {
-          setShots(data.shots);
+          const cleanShots = data.shots.map(shot => ({
+            uuid: uuidv4(),
+            ...shot,
+          }));
+          setShots(cleanShots);
         }
         if (data.medications) {
-          setMedications(data.medications);
+          const cleanMedications = data.medications.map(medic => ({
+            uuid: uuidv4(),
+            ...medic,
+          }));
+          setMedications(cleanMedications);
         }
       });
     },
