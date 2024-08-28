@@ -42,7 +42,6 @@ import 'dayjs/locale/fr';
 
 import { v4 as uuidv4 } from 'uuid';
 
-// eslint-disable-next-line import/no-unresolved
 import createPersistedState from 'use-persisted-state';
 import CustomTextField from './CustomTextField';
 import MedicModal from './MedicModal';
@@ -424,16 +423,15 @@ const Home = () => {
                     {(shotToEdit === uuid) && (
                       <Stack direction="row">
                         <CustomTextField
-                          label="Heure"
-                          type="time"
-                          defaultValue={dayjs(ts).format('HH:mm')}
+                          label="Quand ?"
+                          type="datetime-local"
+                          defaultValue={dayjs(ts).format('YYYY-MM-DDTHH:mm')}
                           inputRef={timeRef}
                         />
                         <IconButton
                           variant="outlined"
                           onClick={() => {
-                            const [h, m] = timeRef.current.value.split(':');
-                            const newDayjs = dayjs(ts).hour(h).minute(m);
+                            const newDayjs = dayjs(timeRef.current.value);
                             const newTs = newDayjs.isAfter(dayjs())
                               ? newDayjs.subtract(1, 'day').valueOf()
                               : newDayjs.valueOf();
