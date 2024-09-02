@@ -43,25 +43,28 @@ import 'dayjs/locale/fr';
 
 import { v4 as uuidv4 } from 'uuid';
 
+import { useDispatch, useSelector } from 'react-redux';
 import createPersistedState from '../hooks/usePersistedState';
 import CustomTextField from './CustomTextField';
 import MedicModal from './MedicModal';
 import ColorButton from './ColorButton';
 
 import { downloadJSON, readFiles } from '../lib';
+import { createMedic, deleteMedic, editMedic, initMedications } from '../slices/medications';
+import { createShot, deleteShot, editShot, initShots } from '../slices/shots';
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
 dayjs.extend(updateLocale);
 dayjs.locale('fr');
 
-const useMedicationState = createPersistedState('medications');
-const useShots = createPersistedState('shots');
 const useMedicViewMode = createPersistedState('medicViewMode');
 
 const Home = () => {
-  const [medications, setMedications] = useMedicationState([]);
-  const [shots, setShots] = useShots([]);
+  const dispatch = useDispatch();
+  const medications = useSelector(state => Object.values(state.medications));
+  const shots = useSelector(state => Object.values(state.shots));
+
   const [editMode, setEditMode] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [shotToEdit, setShotToEdit] = React.useState(null);
@@ -81,18 +84,13 @@ const Home = () => {
 
       contents.forEach(data => {
         if (data.shots) {
-          const cleanShots = data.shots.map(shot => ({
-            uuid: uuidv4(),
-            ...shot,
-          }));
-          setShots(cleanShots);
+          const cleanShots = data.shots.map(shot => ({ uuid: uuidv4(), ...shot }));
+          dispatch(initShots(cleanShots));
         }
+
         if (data.medications) {
-          const cleanMedications = data.medications.map(medic => ({
-            uuid: uuidv4(),
-            ...medic,
-          }));
-          setMedications(cleanMedications);
+          const cleanMedications = data.medications.map(medic => ({ uuid: uuidv4(), ...medic }));
+          dispatch(initMedications(cleanMedications));
         }
       });
     },
@@ -100,49 +98,15 @@ const Home = () => {
 
   const timeRef = React.useRef();
 
-  const deleteMedication = React.useCallback(
-    deleteUuid => {
-      setMedications(
-        prevMedications => prevMedications.filter(({ uuid }) => uuid !== deleteUuid),
-      );
-    },
-    [setMedications],
-  );
-
-  const deleteShot = React.useCallback(
-    deleteUuid => {
-      setShots(
-        prevShots => prevShots.filter(({ uuid }) => uuid !== deleteUuid),
-      );
-    },
-    [setShots],
-  );
-
-  const addMedication = React.useCallback(
-    newOne => {
-      setMedications(
-        prevMedications => [
-          ...prevMedications.filter(({ uuid }) => uuid !== newOne.uuid),
-          newOne,
-        ],
-      );
-    },
-    [setMedications],
-  );
-
-  const clearMedication = React.useCallback(
-    () => {
-      setMedications([]);
-    },
-    [setMedications],
-  );
+  const deleteMedication = deleteUuid => dispatch(deleteMedic(deleteUuid));
 
   const handleFormSubmit = formEntries => {
     if (!formEntries.uuid) {
-      formEntries.uuid = uuidv4(); // eslint-disable-line no-param-reassign
+      dispatch(createMedic(formEntries));
+    } else {
+      dispatch(editMedic(formEntries));
     }
 
-    addMedication(formEntries);
     setFormValues({});
     setEditMode(false);
     setShowModal(false);
@@ -155,26 +119,12 @@ const Home = () => {
     setShowModal(true);
   };
 
-  const take = medication => {
-    setShots(prevTakings => [
-      ...prevTakings,
-      {
-        ...medication,
-        ts: Date.now(),
-        uuid: uuidv4(),
-      },
-    ]);
-  };
-
-  const editShot = ({ uuid: newUuid, ...rest }) => {
-    setShots(prevShots => [
-      ...prevShots.filter(({ uuid }) => (uuid !== newUuid)),
-      {
-        ...rest,
-        uuid: newUuid,
-      },
-    ]);
-  };
+  const take = medication =>
+    dispatch(createShot({
+      ...medication,
+      ts: Date.now(),
+      uuid: uuidv4(),
+    }));
 
   const exportAll = () => {
     downloadJSON({
@@ -255,7 +205,7 @@ const Home = () => {
         </ToggleButtonGroup>
 
         <ToggleButtonGroup size="small">
-          <ToggleButton value onClick={clearMedication} disabled sx={{ opacity: 0.2 }}>
+          <ToggleButton value disabled sx={{ opacity: 0.2 }}>
             <DeleteForever color="error" />
           </ToggleButton>
         </ToggleButtonGroup>
@@ -362,7 +312,6 @@ const Home = () => {
             })}
         </List>
       )}
-
       {medicViewMode === 'button' && (
         <Stack direction="row" gap={0.5} flexWrap="wrap" sx={{ mt: 1 }}>
           {medications.map(medication => {
@@ -425,7 +374,7 @@ const Home = () => {
                   <IconButton onClick={() => setShotToEdit(uuid)}>
                     <Edit />
                   </IconButton>
-                  <IconButton edge="end" onClick={() => deleteShot(uuid)}>
+                  <IconButton title={uuid} edge="end" onClick={() => dispatch(deleteShot(uuid))}>
                     <Delete />
                   </IconButton>
                 </>
@@ -467,7 +416,7 @@ const Home = () => {
                               ? newDayjs.subtract(1, 'day').valueOf()
                               : newDayjs.valueOf();
 
-                            editShot({ ...shot, ts: newTs });
+                            dispatch(editShot({ ...shot, ts: newTs }));
                             setShotToEdit(null);
                           }}
                           color="success"
