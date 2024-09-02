@@ -1,11 +1,40 @@
 /* eslint-disable import/prefer-default-export */
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
+
+import {
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+
 import medicationsReducer from './slices/medications';
 import shotsReducer from './slices/shots';
 
-export const store = configureStore({
-  reducer: {
+const reducer = persistReducer(
+  {
+    key: 'root',
+    version: 1,
+    storage,
+  },
+  combineReducers({
     medications: medicationsReducer,
     shots: shotsReducer,
-  },
+  }),
+);
+
+const middleware = getDefaultMiddleware =>
+  getDefaultMiddleware({
+    serializableCheck: {
+      ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+    },
+  });
+
+export const store = configureStore({
+  reducer,
+  middleware,
 });
