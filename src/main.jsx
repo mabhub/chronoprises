@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
 
 import {
   createTheme,
@@ -7,9 +8,9 @@ import {
   responsiveFontSizes,
   ThemeProvider,
 } from '@mui/material';
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { store } from './store';
 import App from './App';
 
 const queryClient = new QueryClient();
@@ -24,11 +25,13 @@ const theme = responsiveFontSizes(createTheme({
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <App />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </Provider>
   </React.StrictMode>,
 );
