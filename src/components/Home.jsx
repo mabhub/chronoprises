@@ -15,6 +15,9 @@ import {
   ListSubheader,
   ToggleButtonGroup,
   ToggleButton,
+  Menu,
+  MenuItem,
+  Button,
 } from '@mui/material';
 
 import {
@@ -27,7 +30,6 @@ import {
   Edit,
   FileUpload,
   GetApp,
-  List as ListIcon,
   MoreHoriz,
 } from '@mui/icons-material';
 
@@ -65,6 +67,7 @@ const Home = () => {
   const [shotToEdit, setShotToEdit] = React.useState(null);
   const [medicViewMode, setMedicViewMode] = useMedicViewMode('list');
   const [formValues, setFormValues] = React.useState();
+  const [toolbarMenuAnchor, setToolbarMenuAnchor] = React.useState(null);
 
   const { open: openUpload, isDragAccept, getRootProps, getInputProps } = useDropzone({
     noClick: true,
@@ -173,8 +176,6 @@ const Home = () => {
     ]);
   };
 
-  const handleMedicViewModeChange = (event, value) => (value && setMedicViewMode(value));
-
   const exportAll = () => {
     downloadJSON({
       medications,
@@ -228,6 +229,19 @@ const Home = () => {
       />
 
       <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
+
+        <ToggleButtonGroup size="small">
+          <ToggleButton value onClick={exportAll}>
+            <GetApp />
+          </ToggleButton>
+
+          <ToggleButton value onClick={openUpload}>
+            <FileUpload />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
+
+      <Stack direction="row" spacing={1} justifyContent="flex-start" sx={{ mt: 1 }}>
         <ToggleButtonGroup size="small">
           <ToggleButton
             value
@@ -246,31 +260,34 @@ const Home = () => {
           </ToggleButton>
         </ToggleButtonGroup>
 
-        <ToggleButtonGroup size="small">
-          <ToggleButton value onClick={exportAll}>
-            <GetApp />
-          </ToggleButton>
-
-          <ToggleButton value onClick={openUpload}>
-            <FileUpload />
-          </ToggleButton>
-        </ToggleButtonGroup>
-
-        <ToggleButtonGroup
-          color="primary"
+        <Button
           size="small"
-          onChange={handleMedicViewModeChange}
-          value={medicViewMode}
-          exclusive
+          color="info"
+          sx={{ minWidth: 0, ml: 'auto !important' }}
+          onClick={event => setToolbarMenuAnchor(event.target)}
         >
-          <ToggleButton value="list">
-            <ListIcon />
-          </ToggleButton>
+          <MoreHoriz />
+        </Button>
 
-          <ToggleButton value="button">
-            <MoreHoriz />
-          </ToggleButton>
-        </ToggleButtonGroup>
+        <Menu
+          open={Boolean(toolbarMenuAnchor)}
+          anchorEl={toolbarMenuAnchor}
+          onClose={() => setToolbarMenuAnchor(null)}
+          onClick={() => setToolbarMenuAnchor(null)}
+        >
+          <MenuItem
+            selected={medicViewMode === 'list'}
+            onClick={() => setMedicViewMode('list')}
+          >
+            Voir un liste
+          </MenuItem>
+          <MenuItem
+            selected={medicViewMode === 'button'}
+            onClick={() => setMedicViewMode('button')}
+          >
+            Voir des boutons
+          </MenuItem>
+        </Menu>
       </Stack>
 
       {medicViewMode === 'list' && (
