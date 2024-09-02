@@ -28,8 +28,6 @@ import {
   DeleteForever,
   Done,
   Edit,
-  FileUpload,
-  GetApp,
   MoreHoriz,
 } from '@mui/icons-material';
 
@@ -49,9 +47,10 @@ import CustomTextField from './CustomTextField';
 import MedicModal from './MedicModal';
 import ColorButton from './ColorButton';
 
-import { downloadJSON, readFiles } from '../lib';
+import { readFiles } from '../lib';
 import { createMedic, deleteMedic, editMedic, initMedications } from '../slices/medications';
 import { createShot, deleteShot, editShot, initShots } from '../slices/shots';
+import ImportExport from './ImportExport';
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
@@ -126,13 +125,6 @@ const Home = () => {
       uuid: uuidv4(),
     }));
 
-  const exportAll = () => {
-    downloadJSON({
-      medications,
-      shots,
-    }, `${dayjs().format('YYYYMMDD-HHmm')}-chronoprises.json`);
-  };
-
   return (
     <Container
       maxWidth="sm"
@@ -178,18 +170,7 @@ const Home = () => {
         alt={editMode}
       />
 
-      <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
-
-        <ToggleButtonGroup size="small">
-          <ToggleButton value onClick={exportAll}>
-            <GetApp />
-          </ToggleButton>
-
-          <ToggleButton value onClick={openUpload}>
-            <FileUpload />
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Stack>
+      <ImportExport onUpload={openUpload} />
 
       <Stack direction="row" spacing={1} justifyContent="flex-start" sx={{ mt: 1 }}>
         <ToggleButtonGroup size="small">
