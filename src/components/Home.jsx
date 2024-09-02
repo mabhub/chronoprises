@@ -43,7 +43,7 @@ import 'dayjs/locale/fr';
 
 import { v4 as uuidv4 } from 'uuid';
 
-import createPersistedState from 'use-persisted-state';
+import createPersistedState from '../hooks/usePersistedState';
 import CustomTextField from './CustomTextField';
 import MedicModal from './MedicModal';
 import ColorButton from './ColorButton';
