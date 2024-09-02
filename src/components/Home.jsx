@@ -139,7 +139,7 @@ const Home = () => {
 
   const handleFormSubmit = formEntries => {
     if (!formEntries.uuid) {
-      formEntries.uuid = uuidv4();
+      formEntries.uuid = uuidv4(); // eslint-disable-line no-param-reassign
     }
 
     addMedication(formEntries);
