@@ -4,32 +4,21 @@ import {
   Avatar,
   Box,
   Container,
-  Divider,
   IconButton,
   List,
   ListItem,
   ListItemAvatar,
-  ListItemButton,
   ListItemText,
   Stack,
   Tooltip,
   ListSubheader,
-  ToggleButtonGroup,
-  ToggleButton,
-  Menu,
-  MenuItem,
-  Button,
 } from '@mui/material';
 
 import {
-  Add,
-  AvTimer,
   Clear,
   Delete,
-  DeleteForever,
   Done,
   Edit,
-  MoreHoriz,
 } from '@mui/icons-material';
 
 import { useDropzone } from 'react-dropzone';
@@ -45,14 +34,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { useDispatch, useSelector } from 'react-redux';
 import CustomTextField from './CustomTextField';
 import MedicModal from './MedicModal';
-import ColorButton from './ColorButton';
 
 import { readFiles } from '../lib';
-import { createMedic, deleteMedic, editMedic, initMedications } from '../slices/medications';
-import { createShot, deleteShot, editShot, initShots } from '../slices/shots';
+import { createMedic, editMedic, initMedications } from '../slices/medications';
+import { deleteShot, editShot, initShots } from '../slices/shots';
 import { set } from '../slices/ui';
 
 import ImportExport from './ImportExport';
+import Toolbar from './Toolbar';
+import MedicList from './MedicList';
+import MedicButtons from './MedicButtons';
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
@@ -70,7 +61,6 @@ const Home = () => {
   const medicViewMode = useSelector(state => state.ui.medicViewMode);
 
   const [formValues, setFormValues] = React.useState();
-  const [toolbarMenuAnchor, setToolbarMenuAnchor] = React.useState(null);
 
   const { open: openUpload, isDragAccept, getRootProps, getInputProps } = useDropzone({
     noClick: true,
@@ -98,8 +88,6 @@ const Home = () => {
 
   const timeRef = React.useRef();
 
-  const deleteMedication = deleteUuid => dispatch(deleteMedic(deleteUuid));
-
   const handleFormSubmit = formEntries => {
     if (!formEntries.uuid) {
       dispatch(createMedic(formEntries));
@@ -116,13 +104,6 @@ const Home = () => {
     setFormValues(medication);
     dispatch(set({ editMode: true, showModal: true }));
   };
-
-  const take = medication =>
-    dispatch(createShot({
-      ...medication,
-      ts: Date.now(),
-      uuid: uuidv4(),
-    }));
 
   return (
     <Container
@@ -170,162 +151,21 @@ const Home = () => {
 
       <ImportExport onUpload={openUpload} />
 
-      <Stack direction="row" spacing={1} justifyContent="flex-start" sx={{ mt: 1 }}>
-        <ToggleButtonGroup size="small">
-          <ToggleButton
-            value
-            onClick={() => {
-              setFormValues({});
-              dispatch(set({ showModal: true }));
-            }}
-          >
-            <Add color="success" />
-          </ToggleButton>
-        </ToggleButtonGroup>
-
-        <ToggleButtonGroup size="small">
-          <ToggleButton value disabled sx={{ opacity: 0.2 }}>
-            <DeleteForever color="error" />
-          </ToggleButton>
-        </ToggleButtonGroup>
-
-        <Button
-          size="small"
-          color="info"
-          sx={{ minWidth: 0, ml: 'auto !important' }}
-          onClick={event => setToolbarMenuAnchor(event.target)}
-        >
-          <MoreHoriz />
-        </Button>
-
-        <Menu
-          open={Boolean(toolbarMenuAnchor)}
-          anchorEl={toolbarMenuAnchor}
-          onClose={() => setToolbarMenuAnchor(null)}
-          onClick={() => setToolbarMenuAnchor(null)}
-        >
-          <MenuItem
-            selected={medicViewMode === 'list'}
-            onClick={() => dispatch(set({ medicViewMode: 'list' }))}
-          >
-            Voir un liste
-          </MenuItem>
-          <MenuItem
-            selected={medicViewMode === 'button'}
-            onClick={() => dispatch(set({ medicViewMode: 'button' }))}
-          >
-            Voir des boutons
-          </MenuItem>
-        </Menu>
-      </Stack>
+      <Toolbar
+        onAdd={() => {
+          setFormValues({});
+          dispatch(set({ showModal: true }));
+        }}
+      />
 
       {medicViewMode === 'list' && (
-        <List>
-          {medications
-            .sort(({ primary: a }, { primary: b }) => a.localeCompare(b))
-            .map(medication => {
-              const { primary, secondary, uuid, color, delay } = medication;
-
-              return (
-                <React.Fragment key={uuid}>
-                  <Divider />
-
-                  <ListItem
-                    disablePadding
-                    secondaryAction={(
-                      <>
-                        {delay && (
-                          <Tooltip
-                            arrow
-                            title={(
-                              <Box sx={{ textAlign: 'center' }}>
-                                <strong>{delay} heure{delay > 1 ? 's' : ''}</strong> au moins<br />
-                                entre chaque prise
-                              </Box>
-                            )}
-                          >
-                            <Box component="span">
-                              <IconButton disabled>
-                                <AvTimer />
-                              </IconButton>
-                            </Box>
-                          </Tooltip>
-                        )}
-
-                        <IconButton
-                          onClick={event => { event.stopPropagation(); editMedication(uuid); }}
-                          color="info"
-                        >
-                          <Edit />
-                        </IconButton>
-
-                        <IconButton
-                          edge="end"
-                          onClick={event => { event.stopPropagation(); deleteMedication(uuid); }}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </>
-                    )}
-                  >
-                    <ListItemButton onClick={() => take(medication)}>
-                      <ListItemAvatar>
-                        <Avatar
-                          sx={{
-                            bgcolor: color,
-                            width: 30,
-                            height: 30,
-                            fontSize: '0.85rem',
-                          }}
-                        >
-                          {primary.substr(0, 3)}
-                        </Avatar>
-                      </ListItemAvatar>
-
-                      <ListItemText primary={primary} secondary={secondary} />
-                    </ListItemButton>
-
-                  </ListItem>
-                </React.Fragment>
-              );
-            })}
-        </List>
+        <MedicList
+          onEdit={uuid => editMedication(uuid)}
+        />
       )}
+
       {medicViewMode === 'button' && (
-        <Stack direction="row" gap={0.5} flexWrap="wrap" sx={{ mt: 1 }}>
-          {medications.map(medication => {
-            const { uuid, primary, color, secondary } = medication;
-
-            return (
-              <ColorButton
-                key={uuid}
-                color={color}
-                variant="contained"
-                onClick={() => take(medication)}
-              >
-                <Stack
-                  sx={{ lineHeight: 1.2, minHeight: '2em' }}
-                  justifyContent="center"
-                >
-                  {primary}
-
-                  {secondary && (
-                    <Box
-                      sx={{
-                        fontSize: '0.8em',
-                        opacity: 0.75,
-                        whiteSpace: 'nowrap',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {secondary}
-                    </Box>
-                  )}
-                </Stack>
-              </ColorButton>
-            );
-          })}
-        </Stack>
+        <MedicButtons />
       )}
 
       <List>
