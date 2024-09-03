@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   Avatar,
   Box,
@@ -42,7 +43,6 @@ import 'dayjs/locale/fr';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useDispatch, useSelector } from 'react-redux';
-import createPersistedState from '../hooks/usePersistedState';
 import CustomTextField from './CustomTextField';
 import MedicModal from './MedicModal';
 import ColorButton from './ColorButton';
@@ -50,6 +50,8 @@ import ColorButton from './ColorButton';
 import { readFiles } from '../lib';
 import { createMedic, deleteMedic, editMedic, initMedications } from '../slices/medications';
 import { createShot, deleteShot, editShot, initShots } from '../slices/shots';
+import { set } from '../slices/ui';
+
 import ImportExport from './ImportExport';
 
 dayjs.extend(relativeTime);
@@ -57,17 +59,16 @@ dayjs.extend(localizedFormat);
 dayjs.extend(updateLocale);
 dayjs.locale('fr');
 
-const useMedicViewMode = createPersistedState('medicViewMode');
-
 const Home = () => {
   const dispatch = useDispatch();
   const medications = useSelector(state => Object.values(state.medications));
   const shots = useSelector(state => Object.values(state.shots));
 
-  const [editMode, setEditMode] = React.useState(false);
-  const [showModal, setShowModal] = React.useState(false);
-  const [shotToEdit, setShotToEdit] = React.useState(null);
-  const [medicViewMode, setMedicViewMode] = useMedicViewMode('list');
+  const editMode = useSelector(state => state.ui.editMode);
+  const showModal = useSelector(state => state.ui.showModal);
+  const shotToEdit = useSelector(state => state.ui.shotToEdit);
+  const medicViewMode = useSelector(state => state.ui.medicViewMode);
+
   const [formValues, setFormValues] = React.useState();
   const [toolbarMenuAnchor, setToolbarMenuAnchor] = React.useState(null);
 
@@ -107,15 +108,13 @@ const Home = () => {
     }
 
     setFormValues({});
-    setEditMode(false);
-    setShowModal(false);
+    dispatch(set({ editMode: false, showModal: false }));
   };
 
   const editMedication = editUuid => {
     const medication = medications.find(({ uuid }) => editUuid === uuid);
     setFormValues(medication);
-    setEditMode(true);
-    setShowModal(true);
+    dispatch(set({ editMode: true, showModal: true }));
   };
 
   const take = medication =>
@@ -163,8 +162,7 @@ const Home = () => {
         initialValues={formValues}
         onClose={() => {
           setFormValues({});
-          setEditMode(false);
-          setShowModal(false);
+          dispatch(set({ editMode: false, showModal: false }));
         }}
         onSubmit={handleFormSubmit}
         alt={editMode}
@@ -178,7 +176,7 @@ const Home = () => {
             value
             onClick={() => {
               setFormValues({});
-              setShowModal(true);
+              dispatch(set({ showModal: true }));
             }}
           >
             <Add color="success" />
@@ -208,13 +206,13 @@ const Home = () => {
         >
           <MenuItem
             selected={medicViewMode === 'list'}
-            onClick={() => setMedicViewMode('list')}
+            onClick={() => dispatch(set({ medicViewMode: 'list' }))}
           >
             Voir un liste
           </MenuItem>
           <MenuItem
             selected={medicViewMode === 'button'}
-            onClick={() => setMedicViewMode('button')}
+            onClick={() => dispatch(set({ medicViewMode: 'button' }))}
           >
             Voir des boutons
           </MenuItem>
@@ -352,7 +350,7 @@ const Home = () => {
               key={uuid}
               secondaryAction={(
                 <>
-                  <IconButton onClick={() => setShotToEdit(uuid)}>
+                  <IconButton onClick={() => dispatch(set({ shotToEdit: uuid }))}>
                     <Edit />
                   </IconButton>
                   <IconButton title={uuid} edge="end" onClick={() => dispatch(deleteShot(uuid))}>
@@ -398,7 +396,7 @@ const Home = () => {
                               : newDayjs.valueOf();
 
                             dispatch(editShot({ ...shot, ts: newTs }));
-                            setShotToEdit(null);
+                            dispatch(set({ shotToEdit: null }));
                           }}
                           color="success"
                         >
@@ -406,7 +404,7 @@ const Home = () => {
                         </IconButton>
                         <IconButton
                           variant="outlined"
-                          onClick={() => setShotToEdit(null)}
+                          onClick={() => dispatch(set({ shotToEdit: null }))}
                           color="error"
                         >
                           <Clear />

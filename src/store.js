@@ -14,6 +14,7 @@ import storage from 'redux-persist/lib/storage';
 
 import medicationsReducer from './slices/medications';
 import shotsReducer from './slices/shots';
+import uiReducer from './slices/ui';
 
 const reducer = persistReducer(
   {
@@ -24,6 +25,7 @@ const reducer = persistReducer(
   combineReducers({
     medications: medicationsReducer,
     shots: shotsReducer,
+    ui: uiReducer,
   }),
 );
 
